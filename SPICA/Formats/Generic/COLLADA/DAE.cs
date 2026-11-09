@@ -553,6 +553,9 @@ namespace SPICA.Formats.Generic.COLLADA
                     H3DBone SklBone = Skeleton.FirstOrDefault(x => x.Name == Elem.Name);
                     H3DBone Parent = null;
 
+                    //Bones the model lacks (e.g. props animated in the same file) have no node to target.
+                    if (SklBone == null) continue;
+
                     if (SklBone != null && SklBone.ParentIndex != -1)
                     {
                         Parent = Skeleton[SklBone.ParentIndex];

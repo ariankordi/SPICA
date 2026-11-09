@@ -53,6 +53,20 @@ namespace SPICA.Formats.CtrGfx
                 Deserializer.MainFileVersion = Revision;
             }
 
+            //Some revision 5.0 files (3DS Mii Maker's models and animations) have 15 dictionaries in
+            //the DATA section, without the trailing Emitters one: the 16th slot already holds the
+            //first "DICT" that follows the table. Skip Emitters there instead of misreading it.
+            const int DictionaryEntrySize = 8;
+            const int EmittersSlot = 15;
+            if (Revision >= 0x05000000)
+            {
+                Reader.BaseStream.Seek(HeaderLength + DictionaryEntrySize + EmittersSlot * DictionaryEntrySize, SeekOrigin.Begin);
+                if (Reader.ReadUInt32() == IOUtils.ToUInt32("DICT"))
+                {
+                    Deserializer.AbsentFields.Add("Gfx.Emitters");
+                }
+            }
+
             Reader.BaseStream.Seek(lastPos, SeekOrigin.Begin);
         }
 

@@ -24,6 +24,10 @@ namespace SPICA.Serialization
         private Dictionary<long, object> ListObjs;
         private bool IsCGFX = false;
 
+        //Fields ("Type.Field") a format's header found absent from this particular file, so they
+        //are skipped when reading only (e.g. Gfx.Emitters, see GfxHeader).
+        public readonly HashSet<string> AbsentFields = new HashSet<string>();
+
         public BinaryDeserializer(Stream BaseStream, SerializationOptions Options, bool isCGFX = false) : base(BaseStream, Options)
         {
             Reader = new BinaryReader(BaseStream);
@@ -258,6 +262,8 @@ namespace SPICA.Serialization
                 //    else if(!IfVerAtb.Compare(CurrentRevision, MainFileVersion)) continue;
                 //}
                 if (!Info.GetCustomAttribute<IfVersionAttribute>()?.Compare(CurrentRevision, MainFileVersion) ?? false) continue;
+
+                if (AbsentFields.Count > 0 && AbsentFields.Contains(ObjectType.Name + "." + Info.Name)) continue;
 
                 if (!(
                     Info.IsDefined(typeof(IgnoreAttribute)) ||
