@@ -39,7 +39,9 @@ namespace SPICA.Formats.Generic.COLLADA
 
         public DAE() { }
 
-        public DAE(H3D Scene, int MdlIndex, int AnimIndex = -1)
+        /// <param name="FramesPerSecond">Rate that animation frames are converted to seconds at. The
+        /// files don't store one; 30 is SPICA's original fixed value (mii-body-cli: made a parameter).</param>
+        public DAE(H3D Scene, int MdlIndex, int AnimIndex = -1, float FramesPerSecond = 30f)
         {
             if (MdlIndex != -1)
             {
@@ -681,7 +683,7 @@ namespace SPICA.Formats.Generic.COLLADA
                             }
 
                             //This is the Time in seconds, so we divide by the target FPS
-                            AnimTimes[Frame] = (Frame / 30f).ToString(CultureInfo.InvariantCulture);
+                            AnimTimes[Frame] = (Frame / FramesPerSecond).ToString(CultureInfo.InvariantCulture);
                             AnimPoses[Frame] = StrTrans;
                             AnimLerps[Frame] = "LINEAR";
                         }

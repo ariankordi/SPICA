@@ -20,12 +20,13 @@ namespace SPICA.Cli
         private const string Usage =
             "Usage:\n" +
             "  SPICA.Cli list <file>...\n" +
-            "  SPICA.Cli export <model> <out-dir> [<anim>...] [--model-name <name>] [--verbose]\n" +
+            "  SPICA.Cli export <model> <out-dir> [<anim>...] [--model-name <name>] [--fps <rate>] [--verbose]\n" +
             "\n" +
             "export writes <out-dir>/<model>.dae (mesh and skeleton) and, for each skeletal\n" +
             "animation in the model file and the <anim> files, <out-dir>/<anim>.dae holding the\n" +
             "model plus that one animation. Inputs must already be decompressed (no LZ11).\n" +
             "  --model-name  export this model when the file holds several. Default: the first.\n" +
+            "  --fps         frames per second for animation times. Default: 30, SPICA's own value.\n" +
             "  --verbose     print stack traces for failures";
 
         private static int Main(string[] args)
@@ -91,12 +92,22 @@ namespace SPICA.Cli
             string outFolder = args[1];
             string modelName = null;
             bool verbose = false;
+            // The files store no frame rate; SPICA's DAE exporter has always assumed 30.
+            float framesPerSecond = 30f;
             var animationPaths = new System.Collections.Generic.List<string>();
             for (int i = 2; i < args.Length; i++)
             {
                 if (args[i] == "--model-name" && i + 1 < args.Length)
                 {
                     modelName = args[++i];
+                }
+                else if (args[i] == "--fps" && i + 1 < args.Length)
+                {
+                    framesPerSecond = float.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture);
+                    if (!(framesPerSecond > 0f))
+                    {
+                        throw new ArgumentException("--fps must be positive");
+                    }
                 }
                 else if (args[i] == "--verbose")
                 {
@@ -162,7 +173,7 @@ namespace SPICA.Cli
                 try
                 {
                     animationOut = ChildPath(outFolder, animation.Name, ".dae");
-                    new DAE(scene, modelIndex, animationIndex).Save(animationOut);
+                    new DAE(scene, modelIndex, animationIndex, framesPerSecond).Save(animationOut);
                     Console.WriteLine(animationOut);
                 }
                 catch (Exception e)
